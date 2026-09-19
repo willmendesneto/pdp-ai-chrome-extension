@@ -1,0 +1,18 @@
+---
+description: Popup, options, manifest — UI flow and permissions
+globs:
+  - projects/popup/**/*
+  - projects/options/**/*
+  - extension/**/*
+alwaysApply: false
+---
+
+# Extension UI & manifest
+
+Docs: `docs/features/popup-ui.md`, `docs/features/options-api-key.md`, `docs/ARCHITECTURE-GUIDELINES.md`.
+
+- Analyze: `chrome.scripting.executeScript` content script then MAIN `dom-updater` (see `EXTENSION_SCRIPT_PATHS`)
+- Popup listens for `UPDATE_SUCCESS`, `LLM_ERROR`, `UPDATE_ERROR`
+- Options: trim API key; storage key name `geminiApiKey`
+- **extension/manifest.template.json**: bump version on release; tighten permissions only with strong justification
+- CSP `connect-src` must allow Gemini when changing network targets

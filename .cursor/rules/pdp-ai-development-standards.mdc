@@ -1,0 +1,32 @@
+---
+description: Route tasks to docs and skills; doc update policy for PDP AI extension
+alwaysApply: true
+---
+
+# PDP AI development standards
+
+## Mandatory reads
+
+- **Any code change** → skim `docs/DEVELOPMENT-STANDARDS.md`
+- **Architecture / new file** → `docs/ARCHITECTURE-GUIDELINES.md`
+- **Review prep** → `docs/CODE-REVIEW-STANDARDS.md`
+
+## Task → doc (+ skill / command)
+
+| Task | Doc | Skill / command |
+|------|-----|-----------------|
+| Gemini API, prompt, retries | `docs/features/gemini-llm.md`, `docs/API-INTEGRATION.md` | skill `change-gemini-prompt`; rule `gemini-prompt-changes.mdc` |
+| Messages / injection | `docs/features/message-passing.md` | — |
+| DOM apply | `docs/features/dom-updates.md` | — |
+| Popup / options UI | `docs/features/popup-ui.md`, `docs/features/options-api-key.md` | — |
+| Manual validation | `docs/TESTING-GUIDE.md` | skill `manual-test-pdp`; command `test-extension` |
+| Debug production-like issues | `docs/TROUBLESHOOTING.md`, `docs/playbooks/debug-extension.md` | skill `debug-chrome-extension` |
+| Release | `docs/playbooks/release-extension.md` | — |
+
+## Non-negotiable
+
+- Minimize scope; match existing Angular / TypeScript patterns under `projects/` and `libs/`
+- Run `npm run build:extension` before manual Chrome validation
+- Never commit or log Gemini API keys or full PDP HTML
+- Update matching `docs/features/*.md` when behavior in that feature changes
+- Prefer amending existing docs over new doc files

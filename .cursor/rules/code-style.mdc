@@ -1,0 +1,16 @@
+---
+description: JavaScript/TypeScript style aligned with docs/JAVASCRIPT-GUIDE.md
+alwaysApply: true
+---
+
+# Code style
+
+Aligned with `docs/JAVASCRIPT-GUIDE.md` and existing `projects/` / `libs/` sources.
+
+- 2-space indent; semicolons as in surrounding file
+- TypeScript strict; prefer `const` + arrows; standalone Angular components
+- Chrome callbacks OK in services; async/await in background Gemini fetch
+- User-facing strings in English
+- No Node APIs in extension runtime bundles except build scripts under `scripts/`
+
+There is no Prettier/ESLint — do not introduce config unless the user asks; if added, wire into `AGENTS.md` quality matrix.

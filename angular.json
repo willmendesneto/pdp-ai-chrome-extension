@@ -1,0 +1,102 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "popup": {
+      "projectType": "application",
+      "root": "projects/popup",
+      "sourceRoot": "projects/popup/src",
+      "prefix": "pdp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/build/popup",
+            "index": "projects/popup/src/index.html",
+            "browser": "projects/popup/src/main.ts",
+            "polyfills": ["zone.js"],
+            "tsConfig": "projects/popup/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [],
+            "styles": ["projects/popup/src/styles.scss"],
+            "scripts": [],
+            "outputHashing": "none",
+            "baseHref": "./"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" }
+              ],
+              "outputHashing": "none",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": false
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    },
+    "options": {
+      "projectType": "application",
+      "root": "projects/options",
+      "sourceRoot": "projects/options/src",
+      "prefix": "pdp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/build/options",
+            "index": "projects/options/src/index.html",
+            "browser": "projects/options/src/main.ts",
+            "polyfills": ["zone.js"],
+            "tsConfig": "projects/options/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [],
+            "styles": ["projects/options/src/styles.scss"],
+            "scripts": [],
+            "outputHashing": "none",
+            "baseHref": "./"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" }
+              ],
+              "outputHashing": "none",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": false
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": false
+  }
+}

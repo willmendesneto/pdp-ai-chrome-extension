@@ -1,0 +1,17 @@
+---
+description: Service worker LLM calls, HTML prep, retries — invariants for background
+globs:
+  - projects/background/**/*
+alwaysApply: false
+---
+
+# background constraints
+
+Docs: `docs/features/gemini-llm.md`, `docs/features/html-preprocessing.md`, `docs/API-INTEGRATION.md`.
+
+- Keep `prepareHtmlForLlm` string-only (no DOMParser in service worker)
+- Preserve retry policy constants or update docs when changing backoff
+- `PROCESS_HTML` listener must `return true` for async `sendResponse`
+- On missing key: `LLM_ERROR` + error response without calling API
+- Never log API key or full HTML
+- Prompt JSON schema changes require popup/dom-updater compatibility — grep `head` / `body` field usage
