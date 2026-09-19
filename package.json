@@ -1,0 +1,31 @@
+{
+  "name": "pdp-ai-chrome-extension",
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "build:scripts": "node scripts/build-scripts.mjs",
+    "build:popup": "ng build popup",
+    "build:options": "ng build options",
+    "build:extension": "npm run build:scripts && npm run build:popup && npm run build:options && node scripts/assemble-extension.mjs",
+    "start": "npm run build:extension:watch",
+    "build:extension:watch": "npm run build:extension && echo 'Watch: re-run build:extension after changes'"
+  },
+  "dependencies": {
+    "@angular/common": "^19.2.0",
+    "@angular/compiler": "^19.2.0",
+    "@angular/core": "^19.2.0",
+    "@angular/forms": "^19.2.25",
+    "@angular/platform-browser": "^19.2.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^19.2.0",
+    "@angular/cli": "^19.2.0",
+    "@angular/compiler-cli": "^19.2.0",
+    "@types/chrome": "^0.0.304",
+    "esbuild": "^0.25.0",
+    "typescript": "~5.7.2"
+  }
+}

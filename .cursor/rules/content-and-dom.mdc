@@ -1,0 +1,17 @@
+---
+description: Content bridge and MAIN-world DOM script — messaging and isolation
+globs:
+  - projects/content-script/**/*
+  - projects/dom-updater/**/*
+alwaysApply: false
+---
+
+# Content & DOM constraints
+
+Docs: `docs/features/message-passing.md`, `docs/features/dom-updates.md`.
+
+- **content-script**: forward messages only; use `safeSendMessage` for invalidated context
+- **dom-updater**: guard `event.source === window`; never import extension APIs
+- postMessage target origin is `'*'` — never put secrets in payloads
+- Selector updates: handle `meta`, `title`, and text nodes distinctly (`updateElement`)
+- HTML capture at end of dom-updater starts analyze — coordinate with popup injection flow

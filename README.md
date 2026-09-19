@@ -7,18 +7,19 @@ PDP AI: LLM-generated for Merchandisers is a Chrome extension that uses Google's
 
 ## 📦 Architecture & Workflow
 
-- **Manifest v3**: Secure, modern Chrome extension structure.
-- **Service Worker (`background.js`)**: Handles Gemini API calls and workflow.
-- **Content Script (`content.js`)**: Bridges extension and page context.
-- **DOM Updater (`dom-updater.js`)**: Injected to update the DOM with AI suggestions.
-- **Popup UI (`popup.html`, `popup.js`, `popup.css`)**: User interface for analysis and suggestions.
-- **Options Page (`options.html`, `options.js`)**: Secure API key management.
+- **Manifest v3**: Built from [`extension/manifest.template.json`](extension/manifest.template.json) into `dist/pdp-ai/`.
+- **Angular workspace**: Popup and options are standalone Angular apps; shared types live in `libs/`.
+- **Service worker** (`projects/background/`): Gemini API calls and HTML preprocessing.
+- **Content script** (`projects/content-script/`): Bridges extension and page context.
+- **DOM updater** (`projects/dom-updater/`): MAIN-world script injected on analyze (TypeScript bundle, no Angular runtime).
+- **Popup** (`projects/popup/`): Analyze UX and suggestion comparison UI.
+- **Options** (`projects/options/`): Secure API key management.
 
 ### Data Flow
 1. User clicks "Analyze Page" in the popup.
 2. Page HTML is sent to Gemini API via background script.
 3. Suggestions are returned and displayed in the popup.
-4. User reviews and applies changes, which are injected into the page.
+4. Changes are applied on the page (refresh to revert).
 
 ### Security & Privacy
 - API key is stored securely in Chrome local storage.
@@ -28,31 +29,31 @@ PDP AI: LLM-generated for Merchandisers is a Chrome extension that uses Google's
 
 ## 🛠️ Installation & Setup
 
-1. **Clone the Repository:** Download the source code.
-2. **Enable Developer Mode:** Go to `chrome://extensions` and enable "Developer mode".
-3. **Load Unpacked Extension:** Select the project folder.
-4. **Get Gemini API Key:** [Google AI Studio](https://aistudio.google.com/app/apikey)
-5. **Configure Extension:** Paste your API key in the options page.
+1. **Clone the repository** and install dependencies: `npm install`
+2. **Build the extension**: `npm run build:extension`
+3. **Enable Developer Mode** at `chrome://extensions`
+4. **Load unpacked** and select the **`dist/pdp-ai`** folder (not the repo root).
+5. **Get a Gemini API key**: [Google AI Studio](https://aistudio.google.com/app/apikey)
+6. **Configure the extension**: paste your API key on the options page.
+
+After code changes, run `npm run build:extension` again, reload the extension, and refresh the PDP tab.
 
 ---
 
 ## 🚀 Usage
 
 1. Go to any product page (PDP).
-2. Click the extension icon and "Analyze Page".
+2. Click the extension icon and **Analyze Page**.
 3. Review suggestions for SEO and UX in the popup.
-4. Apply changes if desired (refresh to revert).
+4. Refresh the page to revert applied changes.
 
 ---
 
 ## ✅ Validation & Testing
 
-- Manual testing via Chrome extension developer mode.
-- Error handling for API key and network issues.
-- UI and DOM update validation on sample PDPs.
+See [`docs/TESTING-GUIDE.md`](docs/TESTING-GUIDE.md). Build first, then load `dist/pdp-ai`.
 
 ---
-
 
 ## How to use
 
