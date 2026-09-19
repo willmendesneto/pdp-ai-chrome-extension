@@ -4,15 +4,51 @@
  */
 
 const LLM_API_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+/** Max HTML length sent to the LLM (~30k tokens rough upper bound). */
+const MAX_HTML_FOR_LLM = 120_000;
+
+/**
+ * Strips heavy/noisy markup and caps size to reduce Gemini input tokens.
+ * Uses string/regex only (DOMParser is unavailable in MV3 service workers).
+ * @param {string} html - Full page HTML from the content script.
+ * @returns {string}
+ */
+const prepareHtmlForLlm = (html) => {
+  let compact = html
+    .replace(/<script\b[\s\S]*?<\/script>/gi, '')
+    .replace(/<style\b[\s\S]*?<\/style>/gi, '')
+    .replace(/<noscript\b[\s\S]*?<\/noscript>/gi, '')
+    .replace(/<svg\b[\s\S]*?<\/svg>/gi, '')
+    .replace(/<iframe\b[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<link\b[^>]*rel\s*=\s*["']?stylesheet["']?[^>]*>/gi, '')
+    .replace(/\ssrc\s*=\s*["']data:[^"']*["']/gi, '')
+    .replace(/\ssrcset\s*=\s*["']data:[^"']*["']/gi, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (compact.length > MAX_HTML_FOR_LLM) {
+    compact =
+      compact.slice(0, MAX_HTML_FOR_LLM) + '\n<!-- HTML truncated for API token limits -->';
+  }
+
+  return compact;
+};
 
 /**
  * Handles incoming messages from content scripts or the popup.
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'PROCESS_HTML') {
-    const fullHtml = request.payload;
-    console.log('Processing HTML from tab:', sender.tab.id);
+    const rawHtml = request.payload;
+    const fullHtml = prepareHtmlForLlm(rawHtml);
+    console.log(
+      'Processing HTML from tab:',
+      sender.tab.id,
+      `(${fullHtml.length} chars, was ${rawHtml.length})`,
+    );
 
     // Retrieve the API key from storage
     chrome.storage.local.get('geminiApiKey', (data) => {
@@ -21,7 +57,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         chrome.runtime.sendMessage({
           type: 'LLM_ERROR',
           payload: {
-            message: 'Chave de API do Gemini não configurada. Vá para as opções da extensão.',
+            message: 'Gemini API key is not configured. Open the extension options.',
           },
         });
         sendResponse({ status: 'error', message: 'API key not configured.' });
@@ -49,6 +85,29 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Indicates an asynchronous response
   }
 });
+
+const LLM_MAX_RETRIES = 4;
+const LLM_RETRY_BASE_MS = 2000;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * @param {number} status - HTTP status from the API.
+ * @param {string} message - Error message from the API.
+ * @returns {boolean}
+ */
+const isRetryableLlmError = (status, message) => {
+  if (status === 429 || status === 503 || status === 502 || status === 504) return true;
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('high demand') ||
+    lower.includes('resource exhausted') ||
+    lower.includes('please retry') ||
+    lower.includes('quota') ||
+    lower.includes('rate limit') ||
+    lower.includes('overloaded')
+  );
+};
 
 /**
  * Makes the call to the LLM API to generate new content.
@@ -137,34 +196,55 @@ const generateLLMContent = async (data) => {
     }
   }`;
 
-  const response = await fetch(`${LLM_API_ENDPOINT}?key=${data.apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        responseMimeType: 'application/json',
+  const requestBody = JSON.stringify({
+    contents: [
+      {
+        parts: [{ text: prompt }],
       },
-    }),
+    ],
+    generationConfig: {
+      responseMimeType: 'application/json',
+    },
   });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(`LLM API request failed: ${errorData.error.message}`);
+  let lastErrorMessage = 'Unknown error';
+
+  for (let attempt = 0; attempt < LLM_MAX_RETRIES; attempt++) {
+    const response = await fetch(`${LLM_API_ENDPOINT}?key=${data.apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: requestBody,
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const generatedContent = JSON.parse(result.candidates[0].content.parts[0].text);
+      return Array.isArray(generatedContent) ? generatedContent[0] : generatedContent;
+    }
+
+    let apiMessage = `HTTP ${response.status}`;
+    try {
+      const errorData = await response.json();
+      apiMessage = errorData.error?.message ?? apiMessage;
+    } catch {
+      // ignore non-JSON error bodies
+    }
+    lastErrorMessage = apiMessage;
+
+    const canRetry = attempt < LLM_MAX_RETRIES - 1 && isRetryableLlmError(response.status, apiMessage);
+    if (!canRetry) {
+      break;
+    }
+
+    const delayMs = LLM_RETRY_BASE_MS * 2 ** attempt;
+    console.warn(
+      `LLM API busy (attempt ${attempt + 1}/${LLM_MAX_RETRIES}), retrying in ${delayMs}ms:`,
+      apiMessage,
+    );
+    await sleep(delayMs);
   }
 
-  const result = await response.json();
-  const generatedContent = JSON.parse(result.candidates[0].content.parts[0].text);
-  // Sometimes the API is returning an Array instead of a single Object
-  return Array.isArray(generatedContent) ? generatedContent[0] : generatedContent;
+  throw new Error(
+    `LLM API request failed: ${lastErrorMessage}. Wait a moment and try again.`,
+  );
 };

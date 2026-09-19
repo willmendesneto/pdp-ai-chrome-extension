@@ -110,6 +110,10 @@
       console.log('Received data to update page content:', event.data.payload);
       replaceContentOnPage(event.data.payload);
     }
+
+    if (event.data.type === 'EXTENSION_CONTEXT_INVALID') {
+      console.warn('[Copilot]', event.data.payload?.message);
+    }
   });
 
   // Immediately send the HTML to the content script to start the process
