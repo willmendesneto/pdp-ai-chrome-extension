@@ -1,0 +1,21 @@
+---
+description: LLM prompt, JSON schema, model id, and retry behavior changes
+globs:
+  - projects/background/**/*
+  - libs/llm-contract/**/*
+alwaysApply: false
+---
+
+# Gemini prompt & schema changes
+
+Read `docs/features/gemini-llm.md` and `docs/API-INTEGRATION.md`. Use skill `.cursor/skills/change-gemini-prompt/`.
+
+Checklist:
+
+1. Update embedded prompt and `generationConfig` together
+2. Grep `projects/popup`, `projects/dom-updater`, and `libs/llm-contract` for field names (`head`, `body`, `originalTitle`, etc.)
+3. Update popup templates if adding/removing fields
+4. `npm run build:extension` and manual test on a real PDP (`docs/TESTING-GUIDE.md`)
+5. Update feature doc in same PR
+
+Do not change model endpoint without verifying CSP `host_permissions` and `connect-src`.

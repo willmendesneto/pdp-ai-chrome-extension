@@ -1,0 +1,18 @@
+---
+description: Discovered tech stack for PDP AI Chrome extension (MV3, Angular, Gemini)
+alwaysApply: true
+---
+
+# Tech stack (repo facts)
+
+- **Type**: Chrome Extension **Manifest V3** (template `extension/manifest.template.json`, ship `dist/pdp-ai/`)
+- **Language**: **TypeScript** — Angular **19** (popup, options); esbuild IIFE bundles (background, content-script, dom-updater)
+- **Build**: `npm run build:extension` → `dist/pdp-ai/` for Load unpacked
+- **Entrypoints**: `projects/background`, manifest `content_scripts`, Angular popup/options
+- **LLM**: Google Gemini **`gemini-2.5-flash`** — `generativelanguage.googleapis.com` v1beta `generateContent`
+- **Storage**: `chrome.storage.local` for API key (`libs/extension-paths`)
+- **Permissions**: `activeTab`, `scripting`, `storage`; hosts `<all_urls>` + Gemini API
+- **Tests / CI / lint**: **None** — manual Chrome testing (`docs/TESTING-GUIDE.md`)
+- **User docs**: `README.md`; engineering: `docs/` + `PDR.md`
+
+Do not assume Jest, ESLint, or GitHub Actions exist unless added in the same change set.

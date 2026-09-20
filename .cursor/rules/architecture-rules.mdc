@@ -1,0 +1,34 @@
+---
+description: MV3 module boundaries, worlds, and secret handling for PDP AI
+alwaysApply: true
+---
+
+# Architecture rules
+
+Read `docs/ARCHITECTURE-GUIDELINES.md` for full detail.
+
+## Boundaries
+
+- **`projects/background/`**: Gemini fetch, storage, tab messages — **no DOM**
+- **`projects/content-script/`**: bridge only — **no DOM mutation**
+- **`projects/dom-updater/`**: MAIN world DOM + postMessage — **no `chrome.*`**
+- **Popup/options**: extension UI + scripting — **no page storage of secrets**
+
+## Data & secrets
+
+- API key: `chrome.storage.local.geminiApiKey` — background + options only
+- HTML sent to Google — document privacy impact when changing capture/preprocessing
+- Do not widen `extension/manifest.template.json` permissions without explicit user request and doc update
+
+## Messaging
+
+- Changing a message `type` or payload shape requires updating **all** producers/consumers (grep repo) + `libs/messaging`
+- Keep `event.source === window` checks on postMessage listeners
+
+## Injection order
+
+- Popup analyze: inject `content-script/main.js` (default world) **then** `dom-updater/main.js` with `world: 'MAIN'`
+
+## Build
+
+- Ship **`dist/pdp-ai/`** after `npm run build:extension`; do not load unpacked from repo root
